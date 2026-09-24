@@ -96,3 +96,9 @@ git push -f origin v1
 ```
 
 For a change that would break existing product configs, release it as `v2` instead, and update each product's workflow when you're ready.
+
+## License
+
+This tooling is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). You may use, change and share it for noncommercial purposes. Commercial use needs permission from Nathan Schenk.
+
+The Schenktronics name and logo, including the logo in the test fixture, are trademarks of Nathan Schenk and are not covered by this license.
