@@ -120,15 +120,30 @@ export function pinTimestamps(pdf, date) {
 }
 
 // Chrome tags table header cells for accessibility with IDs taken from its
-// internal element numbers, like (node00000030). Those numbers vary slightly
-// between runs, so a document with a table could change on every build.
-// Renumber them 1, 2, 3… in their original order: the length stays the same
-// and the order is kept, which the PDF's sorted ID index relies on.
+// internal element numbers, like (node00000030). Those numbers vary between
+// runs, and not even their order is stable, so a document with a table could
+// change on every build. Renumber them 1, 2, 3… in the order they're defined
+// in the file (the object order is stable), then re-sort the PDF's ID index,
+// which must stay in order. Every name keeps its length, so the file's byte
+// offsets stay valid.
 export function normalizeNodeIds(pdf) {
-  const text = Buffer.from(pdf).toString("latin1");
-  const ids = [...new Set(text.match(/\(node\d{8}\)/g) ?? [])].sort();
-  const renumber = new Map(ids.map((id, i) => [id, `(node${String(i + 1).padStart(8, "0")})`]));
-  return Buffer.from(text.replace(/\(node\d{8}\)/g, (id) => renumber.get(id)), "latin1");
+  let text = Buffer.from(pdf).toString("latin1");
+  const all = [...new Set(text.match(/\(node\d{8}\)/g) ?? [])];
+  const defined = [...new Set([...text.matchAll(/\/ID (\(node\d{8}\))/g)].map((m) => m[1]))];
+  const order = [...defined, ...all.filter((id) => !defined.includes(id)).sort()];
+  const renumber = new Map(order.map((id, i) => [id, `(node${String(i + 1).padStart(8, "0")})`]));
+  text = text.replace(/\(node\d{8}\)/g, (id) => renumber.get(id));
+
+  // Each leaf of the ID index lists "(name) N 0 R" pairs, which must be sorted,
+  // and may carry /Limits [(first) (last)].
+  text = text.replace(/\/Names \[((?:\(node\d{8}\) \d+ \d+ R ?)+)\]/g, (whole, list) => {
+    const pairs = [...list.matchAll(/(\(node\d{8}\)) (\d+ \d+ R)/g)].map((m) => [m[1], m[2]]);
+    pairs.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    return `/Names [${pairs.map(([id, ref]) => `${id} ${ref}`).join(" ")}]`;
+  });
+  text = text.replace(/\/Limits \[(\(node\d{8}\)) (\(node\d{8}\))\](\s*\/Names \[(\(node\d{8}\))[^\]]*?(\(node\d{8}\)) \d+ \d+ R\])/g,
+    (_, _first, _last, names, first, last) => `/Limits [${first} ${last}]${names}`);
+  return Buffer.from(text, "latin1");
 }
 
 // Makes the PDF depend only on its content, so unchanged docs rebuild to identical bytes.

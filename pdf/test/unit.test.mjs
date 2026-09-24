@@ -106,17 +106,29 @@ describe("pinTimestamps", () => {
 });
 
 describe("normalizeNodeIds", () => {
-  test("renumbers Chrome's element IDs from 1, keeping their order and length", () => {
-    const pdf = Buffer.from("/ID (node00000037) /Headers [(node00000037) (node00000038)] /Names [(node00000037) 1 0 R (node00000038) 2 0 R]", "latin1");
-    const out = normalizeNodeIds(pdf).toString("latin1");
-    assert.equal(out, "/ID (node00000001) /Headers [(node00000001) (node00000002)] /Names [(node00000001) 1 0 R (node00000002) 2 0 R]");
-    assert.equal(out.length, pdf.length);
+  // Two builds of the same page, as Chrome produced them: the raw IDs differ,
+  // and so does their order.
+  const build = (first, second, index) => Buffer.from(
+    `59 0 obj\n<</S /TH /ID ${first}>>\nendobj\n60 0 obj\n<</S /TH /ID ${second}>>\nendobj\n` +
+    `61 0 obj\n<</S /TD /A [<</O /Table /Headers [${first}]>>]>>\nendobj\n` +
+    `207 0 obj\n<</Limits [(node00000030) (node00000031)]\n/Names [${index}]>>\nendobj\n`, "latin1");
+  const runA = build("(node00000030)", "(node00000031)", "(node00000030) 59 0 R (node00000031) 60 0 R");
+  const runB = build("(node00000031)", "(node00000030)", "(node00000030) 60 0 R (node00000031) 59 0 R");
+
+  test("gives identical output whatever numbers and order Chrome used", () => {
+    assert.ok(normalizeNodeIds(runA).equals(normalizeNodeIds(runB)));
   });
 
-  test("gives the same result whatever numbers Chrome started from", () => {
-    const a = Buffer.from("(node00000028) (node00000029)", "latin1");
-    const b = Buffer.from("(node00000030) (node00000031)", "latin1");
-    assert.ok(normalizeNodeIds(a).equals(normalizeNodeIds(b)));
+  test("numbers IDs in file order and keeps the ID index sorted", () => {
+    const out = normalizeNodeIds(runB).toString("latin1");
+    assert.match(out, /59 0 obj\n<<\/S \/TH \/ID \(node00000001\)>>/);
+    assert.match(out, /60 0 obj\n<<\/S \/TH \/ID \(node00000002\)>>/);
+    assert.match(out, /\/Headers \[\(node00000001\)\]/, "references follow the renumbering");
+    assert.match(out, /\/Limits \[\(node00000001\) \(node00000002\)\]\n\/Names \[\(node00000001\) 59 0 R \(node00000002\) 60 0 R\]/);
+  });
+
+  test("keeps the file the same length", () => {
+    assert.equal(normalizeNodeIds(runB).length, runB.length);
   });
 });
 
