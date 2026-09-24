@@ -1,0 +1,51 @@
+name: Build product PDFs
+description: Builds a product's documentation PDFs from Markdown and commits them.
+
+inputs:
+  config:
+    description: Path to the product's PDF config file.
+    default: docs/pdf/config.json
+  commit:
+    description: Commit and push the PDFs if they changed ("true" or "false").
+    default: "true"
+  commit-message:
+    description: Message for the commit.
+    default: Rebuild PDFs
+
+outputs:
+  pdfs:
+    description: Space-separated paths of the PDFs that were built.
+    value: ${{ steps.build.outputs.pdfs }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 22
+
+    - name: Install the PDF builder
+      shell: bash
+      run: npm ci --prefix "$GITHUB_ACTION_PATH" --omit=dev --no-fund --no-audit
+
+    - name: Build PDFs
+      id: build
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/build.mjs" "${{ inputs.config }}"
+
+    - name: Commit updated PDFs
+      if: inputs.commit == 'true'
+      shell: bash
+      env:
+        PDFS: ${{ steps.build.outputs.pdfs }}
+        MESSAGE: ${{ inputs.commit-message }}
+      run: |
+        git add -- $PDFS
+        if git diff --cached --quiet; then
+          echo "PDFs unchanged"
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git commit -m "$MESSAGE"
+        git push

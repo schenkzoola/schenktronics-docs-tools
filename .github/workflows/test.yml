@@ -1,0 +1,63 @@
+# Tests the PDF builder, then builds every product that uses it,
+# so a change here can't quietly break another repo's docs.
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit-and-build-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pdf/package-lock.json
+      - run: npm ci --no-fund --no-audit
+        working-directory: pdf
+      - run: npm test
+        working-directory: pdf
+
+  products:
+    needs: unit-and-build-tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Every product repo that uses this builder. Add new ones here.
+        product:
+          - repo: schenkzoola/Multiples
+            config: docs/pdf/config.json
+    name: ${{ matrix.product.repo }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: tools
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ matrix.product.repo }}
+          path: product
+          fetch-depth: 0
+      - name: Build the product's PDFs with this version of the action
+        id: pdf
+        uses: ./tools/pdf
+        with:
+          config: product/${{ matrix.product.config }}
+          commit: "false"
+      - name: Compare with the product's committed PDFs
+        working-directory: product
+        env:
+          CONFIG: ${{ matrix.product.config }}
+        run: |
+          dir=$(dirname "$CONFIG")
+          if git diff --quiet -- "$dir"; then
+            echo "Output matches the committed PDFs."
+          else
+            git diff --stat -- "$dir"
+            echo "::notice title=${{ matrix.product.repo }}::PDF output differs from the committed PDFs. Expected if this change alters the layout; the product's next PDF build will commit the new version."
+          fi

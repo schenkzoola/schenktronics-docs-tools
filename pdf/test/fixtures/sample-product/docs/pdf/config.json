@@ -1,0 +1,10 @@
+{
+  "product": "Sample Module",
+  "pcbVersion": "v9.9",
+  "repo": "example/sample-product",
+  "branch": "main",
+  "documents": [
+    { "src": "manual.md", "out": "sample-manual.pdf", "title": "User Manual" },
+    { "src": "assembly-guide.md", "out": "sample-assembly-guide.pdf", "title": "Assembly Guide" }
+  ]
+}
