@@ -103,6 +103,15 @@ describe("problems in a product's docs", () => {
     assert.match(pages[0], /schenktronics/i);
   });
 
+  test("builds with a cover QR code", async () => {
+    const { dir, config } = makeProduct("sample-product", (d) =>
+      editJson(join(d, "docs/pdf/config.json"), (c) => { c.qrUrl = "https://example.com/sample-module"; }));
+    await buildPdfs(config, silent);
+    const { pages } = await readPdf(join(dir, "docs/pdf/sample-manual.pdf"));
+    assert.ok(pages[0].includes("Latest version"));
+    assert.ok(pages[0].includes("Official version: github.com/example/sample-product"));
+  });
+
   test("honours the paper size setting", async () => {
     const { dir, config } = makeProduct("sample-product", (d) =>
       editJson(join(d, "docs/pdf/config.json"), (c) => { c.paper = "A4"; }));

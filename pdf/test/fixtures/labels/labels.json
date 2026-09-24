@@ -1,0 +1,20 @@
+{
+  "product": "Sample Module",
+  "pcbVersion": "v9.9",
+  "productDir": "../sample-product",
+  "panel": "docs/images/drawing.svg",
+  "url": "https://example.com/sample-module",
+  "specs": ["4HP Eurorack", "No power needed"],
+  "variants": [
+    {
+      "id": "kit",
+      "name": "DIY Kit",
+      "insert": { "title": "In this kit", "items": ["1 × PCB", "1 × faceplate"], "note": "Solder not included." }
+    },
+    {
+      "id": "assembled",
+      "name": "Assembled",
+      "insert": { "title": "Quick start", "checklist": false, "items": ["Fit it in any 4HP space."] }
+    }
+  ]
+}

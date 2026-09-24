@@ -27,6 +27,9 @@ body {
 .cover .doc-title { font-size: 15pt; font-weight: 600; }
 .cover .meta { font-size: 8.5pt; color: var(--muted); margin-top: 4pt; }
 .cover .meta.official { margin-top: 1pt; }
+.cover { position: relative; }
+.cover-qr { position: absolute; top: 0; right: 0; width: 22mm; text-align: center; font-size: 7pt; color: var(--muted); }
+.cover-qr svg { display: block; width: 100%; height: auto; margin-bottom: 2pt; }
 .cover .brand-text { font-size: 8.5pt; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
 
 h2 { font-size: 14pt; margin: 18pt 0 6pt; padding-bottom: 3pt; border-bottom: 1px solid var(--rule); }

@@ -4,7 +4,7 @@ import { mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, test } from "node:test";
-import { ConfigError, lastChanged, loadConfig, normalizeNodeIds, pinTimestamps, rewriteLinks } from "../lib.mjs";
+import { ConfigError, lastChanged, loadConfig, normalizeNodeIds, pinTimestamps, qrSvg, renderHtml, rewriteLinks } from "../lib.mjs";
 import { COMMIT_DATE, editJson, makeProduct } from "./helpers.mjs";
 
 describe("loadConfig", () => {
@@ -26,6 +26,12 @@ describe("loadConfig", () => {
     const { config } = makeProduct("sample-product", (d) =>
       editJson(join(d, "docs/pdf/config.json"), (c) => { c.officialUrl = "schenktronics.com/sample"; }));
     assert.equal(loadConfig(config).officialUrl, "schenktronics.com/sample");
+  });
+
+  test("requires the cover QR URL to use https", () => {
+    const { config } = makeProduct("sample-product", (d) =>
+      editJson(join(d, "docs/pdf/config.json"), (c) => { c.qrUrl = "http://example.com/x"; }));
+    assert.throws(() => loadConfig(config), /"qrUrl" must start with https:\/\//);
   });
 
   test("reports a missing config file", () => {
@@ -54,6 +60,19 @@ describe("loadConfig", () => {
     const { config } = makeProduct("sample-product", (d) =>
       editJson(join(d, "docs/pdf/config.json"), (c) => { c.documents[0].src = "missing.md"; }));
     assert.throws(() => loadConfig(config), /Document not found: .*missing\.md/);
+  });
+});
+
+describe("cover QR code", () => {
+  test("appears on the cover only when qrUrl is set", async () => {
+    const { config } = makeProduct();
+    const c = loadConfig(config);
+    const doc = { ...c.documents[0], date: "2024-01-02" };
+    // Look for the element, not the class name: the embedded stylesheet mentions it too.
+    assert.ok(!renderHtml(c, doc, "<p>Body</p>").includes('<div class="cover-qr">'));
+    const withQr = renderHtml(c, doc, "<p>Body</p>", await qrSvg("https://example.com/sample"));
+    assert.match(withQr, /<div class="cover-qr"><svg/);
+    assert.ok(withQr.includes("Latest version"));
   });
 });
 

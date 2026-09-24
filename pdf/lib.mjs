@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { Marked } from "marked";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import puppeteer from "puppeteer";
+import QRCode from "qrcode";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -22,6 +23,12 @@ const DEFAULTS = {
 };
 
 export class ConfigError extends Error {}
+
+// A QR code as inline SVG. Medium error correction survives a scuffed or
+// slightly faded print.
+export function qrSvg(url) {
+  return QRCode.toString(url, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#000000", light: "#ffffff" } });
+}
 
 // Reads and checks a product's config file. Relative paths in the config are
 // resolved against the config file's own folder.
@@ -40,6 +47,7 @@ export function loadConfig(configPath) {
     if (typeof config[key] !== "string" || !config[key]) problems.push(`"${key}" is required`);
   }
   if (config.repo && !/^[\w.-]+\/[\w.-]+$/.test(config.repo)) problems.push(`"repo" must look like "owner/name"`);
+  if (config.qrUrl !== undefined && !/^https:\/\//.test(config.qrUrl)) problems.push(`"qrUrl" must start with https://`);
   if (!Array.isArray(config.documents) || config.documents.length === 0) {
     problems.push(`"documents" must list at least one document`);
   } else {
@@ -130,7 +138,8 @@ export function stabilize(pdf, date) {
 
 const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-export function renderHtml(config, doc, body) {
+// `qr` is the cover QR code as SVG, or empty for none (see buildPdfs).
+export function renderHtml(config, doc, body, qr = "") {
   const fonts = pathToFileURL(join(dirname(require.resolve("@fontsource/inter/package.json")), "files")).href;
   const css = readFileSync(join(HERE, "style.css"), "utf8").replaceAll("FONT_DIR", fonts);
   const logoPath = config.logo && resolve(config.docsDir, config.logo);
@@ -148,6 +157,7 @@ export function renderHtml(config, doc, body) {
 </head>
 <body>
 <header class="cover">
+  ${qr ? `<div class="cover-qr">${qr}<div>Latest version</div></div>` : ""}
   ${brand}
   <h1>${e(config.product)}</h1>
   <div class="doc-title">${e(doc.title)}</div>
@@ -181,6 +191,7 @@ export async function buildPdfs(configPath, { log = console.log } = {}) {
   const args = ["--allow-file-access-from-files", ...(process.env.CI ? ["--no-sandbox"] : [])];
   const browser = await puppeteer.launch({ args });
   const written = [];
+  const qr = config.qrUrl ? await qrSvg(config.qrUrl) : "";
   try {
     for (const doc of config.documents) {
       // The cover replaces the document's own H1.
@@ -188,7 +199,7 @@ export async function buildPdfs(configPath, { log = console.log } = {}) {
       doc.date = lastChanged(doc.srcPath);
       const body = rewriteLinks(marked.parse(markdown), config);
       const htmlPath = join(tmp, doc.out.replace(/\.pdf$/, ".html"));
-      writeFileSync(htmlPath, renderHtml(config, doc, body));
+      writeFileSync(htmlPath, renderHtml(config, doc, body, qr));
 
       const tab = await browser.newPage();
       const failures = [];
