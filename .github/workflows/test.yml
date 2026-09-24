@@ -33,6 +33,8 @@ jobs:
         product:
           - repo: schenkzoola/Multiples
             config: docs/pdf/config.json
+          - repo: schenkzoola/Attenuator
+            config: docs/pdf/config.json
     name: ${{ matrix.product.repo }}
     steps:
       - uses: actions/checkout@v7
