@@ -18,7 +18,7 @@ img { display: block; }
 /* Thermal output is 1-bit: push the drawings' greys and the red button to black or white. */
 .logo, .panel { filter: grayscale(1) contrast(1.8); }
 .qr svg { display: block; width: 100%; height: auto; }
-.url { font-weight: 600; font-size: 8.5pt; text-align: center; margin-top: 3pt; }
+.url { font-weight: 600; font-size: 8.5pt; text-align: center; margin-top: 3pt; text-wrap: balance; }
 .nobr { white-space: nowrap; }
 
 /* Box label */
