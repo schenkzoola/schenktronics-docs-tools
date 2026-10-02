@@ -48,6 +48,7 @@ export function loadLabelConfig(configPath) {
     config.variants.forEach((v, i) => {
       for (const key of ["id", "name"]) if (typeof v[key] !== "string" || !v[key]) problems.push(`variants[${i}].${key} is required`);
       if (v.id && !/^[a-z0-9-]+$/.test(v.id)) problems.push(`variants[${i}].id may only use a-z, 0-9 and hyphens`);
+      if (v.ref !== undefined && (typeof v.ref !== "string" || !v.ref)) problems.push(`variants[${i}].ref must be a non-empty string`);
       if (!v.insert || !Array.isArray(v.insert.items)) problems.push(`variants[${i}].insert.items is required`);
     });
   }
@@ -93,6 +94,7 @@ export async function boxLabelHtml(config, variant) {
     <img class="logo" src="${pathToFileURL(config.logoPath).href}" alt="${e(config.brand)}">
     <h1>${e(config.product)}</h1>
     <div class="variant">${e(variant.name)}</div>
+    ${variant.ref ? `<div class="ref">${e(variant.ref)}</div>` : ""}
   </header>
   <section class="box-middle">
     <img class="panel" src="${pathToFileURL(config.panelPath).href}" alt="Panel">

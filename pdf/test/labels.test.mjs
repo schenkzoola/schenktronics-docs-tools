@@ -53,6 +53,11 @@ describe("building labels", () => {
     assert.match(pdfs["box-assembled.pdf"].text, /ASSEMBLED/i);
   });
 
+  test("puts a variant's ref on its box label, and omits it when unset", () => {
+    assert.ok(pdfs["box-kit.pdf"].text.includes("FG-SAMP-KIT"), "box-kit.pdf has the ref");
+    assert.ok(!pdfs["box-assembled.pdf"].text.includes("FG-SAMP-KIT"), "box-assembled.pdf has no ref set, so prints none");
+  });
+
   test("puts the checklist or quick-start notes on the insert", () => {
     assert.ok(pdfs["insert-kit.pdf"].text.includes("In this kit"));
     assert.ok(pdfs["insert-kit.pdf"].text.includes("1 × faceplate"));

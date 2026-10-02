@@ -9,6 +9,7 @@
     {
       "id": "kit",
       "name": "DIY Kit",
+      "ref": "FG-SAMP-KIT",
       "insert": { "title": "In this kit", "items": ["1 × PCB", "1 × faceplate"], "note": "Solder not included." }
     },
     {
