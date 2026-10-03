@@ -1,4 +1,4 @@
-// Builds 4 × 6 in packaging labels (box label and insert) for thermal printers.
+// Builds 3 × 5 in packaging labels (box label and insert) for thermal printers.
 // See README.md for the config format.
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -23,9 +23,11 @@ const DEFAULTS = {
   specs: [],
 };
 
-// Label size in inches. 4 × 6 in is the standard thermal shipping label.
-const WIDTH = 4;
-const HEIGHT = 6;
+// Label size in inches, for the box label and insert - a separate 3 × 5 in
+// direct thermal stock from the 4 × 6 in stock shipping labels use, chosen
+// to reliably fit inside the packaging box (see products/*/packaging/README.md).
+const WIDTH = 3;
+const HEIGHT = 5;
 
 export function loadLabelConfig(configPath) {
   const file = resolve(configPath);

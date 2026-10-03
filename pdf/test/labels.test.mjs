@@ -33,10 +33,10 @@ describe("building labels", () => {
       ["box-assembled.pdf", "box-kit.pdf", "insert-assembled.pdf", "insert-kit.pdf"]);
   });
 
-  test("makes each label a single 4 × 6 in page", () => {
+  test("makes each label a single 3 × 5 in page", () => {
     for (const file of written) {
       const bytes = readFileSync(file).toString("latin1");
-      assert.match(bytes, /\/MediaBox \[0 0 288 432\]/, `${file} is 288 × 432 points`);
+      assert.match(bytes, /\/MediaBox \[0 0 216 360\]/, `${file} is 216 × 360 points`);
       assert.equal(pdfs[file.split("/").pop()].pages.length, 1, `${file} has one page`);
     }
   });
