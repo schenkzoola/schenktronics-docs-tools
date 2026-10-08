@@ -31,11 +31,11 @@ jobs:
       matrix:
         # Every product repo that uses this builder. Add new ones here.
         product:
-          - repo: schenkzoola/Multiples
+          - repo: schenkzoola/ST01-multiples
             config: docs/pdf/config.json
-          - repo: schenkzoola/Attenuator
+          - repo: schenkzoola/ST02-attenuator
             config: docs/pdf/config.json
-          - repo: schenkzoola/Attenuverter
+          - repo: schenkzoola/ST03-attenuverter
             config: docs/pdf/config.json
     name: ${{ matrix.product.repo }}
     steps:
