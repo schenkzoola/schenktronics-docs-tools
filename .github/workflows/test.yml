@@ -31,7 +31,7 @@ jobs:
       matrix:
         # Every product repo that uses this builder. Add new ones here.
         product:
-          - repo: schenkzoola/ST01-multiples
+          - repo: schenkzoola/ST01-multiple
             config: docs/pdf/config.json
           - repo: schenkzoola/ST02-levels
             config: docs/pdf/config.json

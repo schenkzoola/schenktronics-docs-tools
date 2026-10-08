@@ -17,7 +17,7 @@ A product repo needs two files.
 {
   "product": "Passive Multiple",
   "pcbVersion": "v1.0",
-  "repo": "schenkzoola/ST01-multiples",
+  "repo": "schenkzoola/ST01-multiple",
   "branch": "master",
   "documents": [
     { "src": "manual.md", "out": "passive-multiple-manual.pdf", "title": "User Manual" },
@@ -69,7 +69,7 @@ You need Node.js 22.12 or newer. The first `npm install` downloads a copy of Chr
 ```sh
 cd ~/Products/schenktronics-docs-tools/pdf
 npm install
-node build.mjs ~/Products/ST01-multiples/docs/pdf/config.json
+node build.mjs ~/Products/ST01-multiple/docs/pdf/config.json
 ```
 
 Don't commit locally built PDFs. A different Chrome version produces slightly different files, so let the product's Action build the committed copies. To throw away a local build, run `git checkout -- 'docs/pdf/*.pdf'` in the product repo.
