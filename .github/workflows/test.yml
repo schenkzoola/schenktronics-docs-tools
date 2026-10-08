@@ -33,7 +33,7 @@ jobs:
         product:
           - repo: schenkzoola/ST01-multiples
             config: docs/pdf/config.json
-          - repo: schenkzoola/ST02-attenuator
+          - repo: schenkzoola/ST02-levels
             config: docs/pdf/config.json
           - repo: schenkzoola/ST03-attenuverter
             config: docs/pdf/config.json
